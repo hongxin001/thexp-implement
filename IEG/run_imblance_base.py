@@ -1,7 +1,7 @@
 from trainer.imblance.base import Base
-from trainer.imblance.base import BaseParams
+from trainer.imblance import ImblanceParams
 
-params = BaseParams().from_args()
+params = ImblanceParams().from_args()
 params.epoch = 30
 params.device = 'cuda:2'
 params.from_args()

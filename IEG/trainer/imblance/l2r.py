@@ -1,18 +1,15 @@
 import torch
-from torch import nn
+from thexp import Meter
 from torch.nn import functional as F
-from torch.optim import SGD
-from torch.utils.data.dataloader import DataLoader
-from thexp import Params, DataBundler, Meter, callbacks, AvgMeter
-from datasets.data_loader import ValSet
+
 from arch.metaNets import MetaLeNet
-from datasets.data_loader import get_mnist_loader
-from .base import Base, BaseParams
+from . import ImblanceParams
+from .base import Base
 
 
 class L2R(Base):
 
-    def train_batch(self, eidx, idx, global_step, batch_data, params: BaseParams, device: torch.device):
+    def train_batch(self, eidx, idx, global_step, batch_data, params: ImblanceParams, device: torch.device):
         meter = Meter()
 
         (images, labels), (val_images, val_labels) = batch_data
@@ -24,6 +21,7 @@ class L2R(Base):
         eps = torch.zeros_like(labels, device=device, requires_grad=True)
         l_f_meta = torch.sum(cost * eps)
         metanet.zero_grad()
+
         grads = torch.autograd.grad(l_f_meta, (metanet.params()), create_graph=True)
         metanet.update_params(params.optim.lr, grads=grads)
 
@@ -45,15 +43,15 @@ class L2R(Base):
         self.optim.zero_grad()
         l_f.backward()
         self.optim.step()
+
         meter.l_f = l_f
         meter.meta_l = v_meta_loss
         if (labels == 0).sum() > 0:
-            meter.grad_0 = grad_eps[labels == 0].mean()*1e5
-            meter.grad_0_max = grad_eps[labels == 0].max()*1e5
-            meter.grad_0_min = grad_eps[labels == 0].min()*1e5
-        meter.grad_1 = grad_eps[labels == 1].mean()*1e5
-        meter.grad_1_max = grad_eps[labels == 1].max()*1e5
-        meter.grad_1_min = grad_eps[labels == 1].min()*1e5
+            meter.grad_0 = grad_eps[labels == 0].mean() * 1e5
+            meter.grad_0_max = grad_eps[labels == 0].max() * 1e5
+            meter.grad_0_min = grad_eps[labels == 0].min() * 1e5
+        meter.grad_1 = grad_eps[labels == 1].mean() * 1e5
+        meter.grad_1_max = grad_eps[labels == 1].max() * 1e5
+        meter.grad_1_min = grad_eps[labels == 1].min() * 1e5
 
         return meter
-

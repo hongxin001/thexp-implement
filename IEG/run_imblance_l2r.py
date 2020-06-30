@@ -1,7 +1,6 @@
-from trainer.imblance import L2R
-from trainer.imblance.base import BaseParams
+from trainer.imblance import L2R, ImblanceParams
 
-params = BaseParams()
+params = ImblanceParams()
 params.epoch = 200
 params.device = 'cuda:2'
 params.from_args()
